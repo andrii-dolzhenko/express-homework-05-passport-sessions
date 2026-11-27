@@ -4,8 +4,8 @@ html(lang="en" data-theme=theme)
     meta(charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1")
     meta(name="theme-color" content="#11243d")
-    meta(name="description" content="Interactive local Express Homework 04 demo: theme cookies and JWT authentication")
-    title Interactive Demo | Express Homework 04
+    meta(name="description" content="Interactive Express Homework 05 demo: Passport Local authentication and server-side sessions")
+    title Interactive Demo | Express Homework 05
     link(rel="icon" href="/favicon.ico" sizes="any")
     link(rel="stylesheet" href="/assets/css/styles.css")
     link(rel="stylesheet" href="/assets/css/demo.css")
@@ -15,10 +15,10 @@ html(lang="en" data-theme=theme)
       header.site-header
         .container.header-inner
           a.brand(href="/demo" aria-label="Express Studio demo home")
-            span.brand-mark(aria-hidden="true") E4
+            span.brand-mark(aria-hidden="true") E5
             span.brand-copy
               strong Express Studio
-              small EXPRESS / HOMEWORK 04 / JWT + COOKIES
+              small EXPRESS / HOMEWORK 05 / PASSPORT + SESSIONS
           nav.site-nav(aria-label="Main navigation")
             a.nav-link(href="/demo" aria-current="page") Demo
             a.nav-link(href="/users") Users
@@ -32,20 +32,20 @@ html(lang="en" data-theme=theme)
           .demo-intro-copy
             p.eyebrow LOCAL · LIVE EXPRESS SERVER
             h1#demo-title Authentication, made visible.
-            p.lead Try the complete HW-04 workflow in your browser. Switch appearance, create an account, verify access, and sign out. Every action calls the real Express API.
+            p.lead Try the complete HW-05 workflow in your browser. Register, sign in, verify a protected endpoint, and sign out. Every action calls the real Express API.
             .demo-tags(role="group" aria-label="Implemented features")
               span.feature-chip
                 span.feature-dot(aria-hidden="true")
-                |  Favicon ICO
+                |  Passport Local
               span.feature-chip
                 span.feature-dot(aria-hidden="true")
-                |  Theme cookies
+                |  Server sessions
               span.feature-chip
                 span.feature-dot(aria-hidden="true")
-                |  Signed JWT
+                |  HttpOnly cookie
           .intro-decoration(aria-hidden="true")
             span.decoration-ring
-            span.decoration-center E4
+            span.decoration-center E5
         .demo-layout
           .demo-main-column
             section.demo-panel(aria-labelledby="theme-title")
@@ -54,7 +54,7 @@ html(lang="en" data-theme=theme)
                 .panel-heading-copy
                   p.panel-eyebrow PREFERENCE
                   h2#theme-title Choose your theme
-              p.panel-description The choice is saved as an HttpOnly cookie and carried between PUG and EJS pages.
+              p.panel-description The preference is saved in an HttpOnly cookie and shared by the PUG and EJS pages.
               .theme-options(role="group" aria-label="Choose theme")
                 button.demo-theme-choice(type="button" data-theme-choice="light" aria-pressed=String(theme === 'light'))
                   span.theme-choice-icon(aria-hidden="true") ☀
@@ -73,11 +73,11 @@ html(lang="en" data-theme=theme)
                 button.demo-tab(type="button" aria-pressed="true" data-auth-mode="register") Register
                 button.demo-tab(type="button" aria-pressed="false" data-auth-mode="login") Sign in
               form#auth-form.demo-form
-                label(for="demo-username") Username
-                input#demo-username(type="text" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[a-zA-Z0-9_-]{3,32}" placeholder="e.g. demo_student" required)
+                label(for="demo-email") Email
+                input#demo-email(type="email" name="email" autocomplete="email" maxlength="254" placeholder="e.g. demo@example.com" required)
                 label(for="demo-password") Password
                 input#demo-password(type="password" name="password" autocomplete="new-password" minlength="8" maxlength="72" placeholder="At least 8 characters" required)
-                p.form-hint Usernames use letters, numbers, _ or -. Passwords stay on the server as bcrypt hashes.
+                p.form-hint Use a valid email address and a password of at least 8 characters. Passwords are stored as bcrypt hashes.
                 button#auth-submit.demo-primary-button(type="submit") Create account
               p#auth-feedback.demo-feedback(role="status" aria-live="polite")
             section.demo-panel(aria-labelledby="access-title")
@@ -86,9 +86,9 @@ html(lang="en" data-theme=theme)
                 .panel-heading-copy
                   p.panel-eyebrow PROTECTED ENDPOINT
                   h2#access-title Verify your access
-              p.panel-description This action calls GET /auth/me. Without a valid JWT, the API responds with HTTP 401.
+              p.panel-description This action calls GET /protected. Passport restores the authenticated user from the server-side session.
               .demo-button-row
-                button#check-access.demo-secondary-button(type="button") Check /auth/me
+                button#check-access.demo-secondary-button(type="button") Check /protected
                 button#demo-logout.demo-outline-button(type="button" disabled) Sign out
               p#access-feedback.demo-feedback(role="status" aria-live="polite")
               pre#auth-response.demo-response(role="region" aria-label="API response") Ready to verify your identity.
@@ -99,20 +99,20 @@ html(lang="en" data-theme=theme)
                 span LIVE AUTH STATE
               h2#status-title Session overview
               p#auth-state-label.auth-state-label Checking session…
-              p#auth-state-detail.status-description The browser sends the JWT cookie automatically, but JavaScript cannot read it.
+              p#auth-state-detail.status-description The browser sends the session cookie automatically. JavaScript cannot read its HttpOnly value.
               .status-rule
               dl.status-meta
                 div
-                  dt Token storage
-                  dd HttpOnly cookie
+                  dt Authentication
+                  dd Passport Local
                 div
-                  dt JWT expiry
-                  dd 1 hour
+                  dt Session cookie
+                  dd HttpOnly · SameSite=Lax
                 div
                   dt Account storage
                   dd In memory
             section.info-card(aria-labelledby="pages-title")
-              p.panel-eyebrow PREVIOUS HOMEWORK
+              p.panel-eyebrow EXISTING HOMEWORK
               h2#pages-title Explore the pages
               p Both server-side template engines use the same saved appearance.
               a.quick-link(href="/users")
@@ -131,12 +131,14 @@ html(lang="en" data-theme=theme)
                   small Static favicon.ico
                 span.quick-link-arrow(aria-hidden="true") ↗
             section.info-card(aria-labelledby="session-title")
-              p.panel-eyebrow EXISTING SERVER SESSION
+              p.panel-eyebrow EXPRESS SESSION
               h2#session-title Visit counter
-              p A separate session cookie from HW-03. It is not the JWT.
-              button#session-check.demo-secondary-button(type="button") Increment visits
-              p#session-feedback.demo-feedback(role="status" aria-live="polite")
-            p.demo-disclaimer Local educational demo. Accounts and session data reset when the server restarts. Not a production authentication service.
+              p The counter is stored in the same server-side session. Resetting it keeps Passport authentication intact.
+              .demo-button-row.session-actions
+                button#session-check.demo-secondary-button(type="button") Increment visits
+                button#session-reset.demo-outline-button(type="button") Reset counter
+              p#session-feedback.demo-feedback(role="status" aria-live="polite") No visits recorded yet.
+            p.demo-disclaimer Local educational demo. Accounts and session data reset when the server restarts. MemoryStore is not intended for production.
       footer.site-footer
         .container.footer-inner
           span Copyright © 2026 Andrii Dolzhenko.

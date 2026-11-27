@@ -11,7 +11,7 @@ const routes = [
   ['/articles/test-article-1', 'Articles'],
 ]
 
-describe('HW04 consistent responsive header', () => {
+describe('HW05 consistent responsive header', () => {
   test.each(routes)('%s uses the same ordered links and theme form', async (path, current) => {
     const response = await request(app).get(path).set('Accept', 'text/html')
     expect(response.status).toBe(200)
@@ -22,7 +22,7 @@ describe('HW04 consistent responsive header', () => {
     expect(nav).toContain(`href="${current === 'Demo' ? '/demo' : current === 'Users' ? '/users' : '/articles'}" aria-current="page"`)
     expect(response.text).toContain('action="/theme"')
     expect(response.text).toContain('aria-label="Choose color theme"')
-    expect(response.text).toContain('JWT + COOKIES')
+    expect(response.text).toContain('PASSPORT + SESSIONS')
   })
 
   test('theme form on /demo redirects safely back to /demo', async () => {

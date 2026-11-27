@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import request from 'supertest'
 import { app } from '../server.mjs'
 
-describe('HW04 local interactive demo', () => {
+describe('HW05 local interactive demo', () => {
   test('GET /demo renders an HTML dashboard without authentication', async () => {
     const response = await request(app).get('/demo')
     expect(response.status).toBe(200)
@@ -39,7 +39,7 @@ describe('HW04 local interactive demo', () => {
     const response = await request(app).get('/assets/js/demo.js')
     expect(response.status).toBe(200)
     expect(response.headers['content-type']).toMatch(/javascript/)
-    expect(response.text).toContain("'/auth/me'")
+    expect(response.text).toContain("'/protected'")
     expect(response.text).toContain("'/auth/register'")
     expect(response.text).toContain("'/auth/logout'")
   })
@@ -55,7 +55,7 @@ describe('HW04 local interactive demo', () => {
 })
 
 
-describe('HW04 cross-page navigation', () => {
+describe('HW05 cross-page navigation', () => {
   const pages = [
     '/users',
     '/users/test-user-1',

@@ -2,16 +2,16 @@ import { describe, expect, test } from 'vitest'
 import request from 'supertest'
 import { app } from '../server.mjs'
 
-describe('Session visits (additional coursework tests)', () => {
+describe('Session visits', () => {
   test('sets an HttpOnly session cookie and counts repeated visits', async () => {
     const agent = request.agent(app)
     const first = await agent.get('/session')
     expect(first.status).toBe(200)
     expect(first.text).toBe('Visits: 1')
     expect(first.headers['content-type']).toMatch(/^text\/plain/)
-    expect(first.headers['set-cookie']?.[0]).toContain('hw03.sid=')
+    expect(first.headers['set-cookie']?.[0]).toContain('hw05.sid=')
     expect(first.headers['set-cookie']?.[0]).toContain('HttpOnly')
-
+    expect(first.headers['set-cookie']?.[0]).toContain('SameSite=Lax')
     const second = await agent.get('/session')
     expect(second.status).toBe(200)
     expect(second.text).toBe('Visits: 2')
@@ -24,14 +24,14 @@ describe('Session visits (additional coursework tests)', () => {
     expect(other.text).toBe('Visits: 1')
   })
 
-  test('DELETE /session resets only the current session', async () => {
+  test('DELETE /session resets only the visits counter', async () => {
     const agent = request.agent(app)
     await agent.get('/session')
     const deleted = await agent.delete('/session')
     expect(deleted.status).toBe(204)
     expect(deleted.text).toBeFalsy()
-    expect(deleted.headers['set-cookie']?.[0]).toContain('hw03.sid=')
     const restarted = await agent.get('/session')
+    expect(restarted.status).toBe(200)
     expect(restarted.text).toBe('Visits: 1')
   })
 

@@ -1,10 +1,9 @@
-// HW04 local demo: calls the real Express endpoints using same-origin cookies.
-// Tokens are deliberately not accessed or stored in browser JavaScript.
+// HW05 local demo: Passport Local authentication and server-side sessions.
 (() => {
   'use strict'
 
   const form = document.querySelector('#auth-form')
-  const usernameInput = document.querySelector('#demo-username')
+  const emailInput = document.querySelector('#demo-email')
   const passwordInput = document.querySelector('#demo-password')
   const submitButton = document.querySelector('#auth-submit')
   const logoutButton = document.querySelector('#demo-logout')
@@ -16,6 +15,7 @@
   const authState = document.querySelector('#auth-state-label')
   const authDetail = document.querySelector('#auth-state-detail')
   const sessionButton = document.querySelector('#session-check')
+  const sessionResetButton = document.querySelector('#session-reset')
   const sessionFeedback = document.querySelector('#session-feedback')
   const themeButtons = [...document.querySelectorAll('[data-theme-choice]')]
   const modeButtons = [...document.querySelectorAll('[data-auth-mode]')]
@@ -43,29 +43,29 @@
     let body = null
     if (raw) {
       try { body = JSON.parse(raw) }
-      catch { body = { error: 'Unexpected server response' } }
+      catch { body = { message: raw } }
     }
     return { status: response.status, ok: response.ok, body }
   }
 
   function updateAuthState(user) {
     const authorized = Boolean(user)
-    authState.textContent = authorized ? `Signed in: ${user.username}` : 'Not signed in'
+    authState.textContent = authorized ? `Signed in: ${user.email}` : 'Not signed in'
     authDetail.textContent = authorized
-      ? 'A valid signed JWT is stored in an HttpOnly browser cookie.'
-      : 'Register or sign in. A JWT cookie is required for /auth/me.'
+      ? 'Passport authenticated this user and restored the account from the server-side session.'
+      : 'Register or sign in to create an authenticated Passport session.'
     logoutButton.disabled = !authorized
   }
 
   async function checkAccess(silent = false) {
     try {
-      const result = await api('/auth/me')
+      const result = await api('/protected')
       const user = result.ok ? result.body?.user : null
       updateAuthState(user)
       accessResponse.textContent = `HTTP ${result.status}\n${JSON.stringify(result.body, null, 2)}`
       if (!silent) {
         showFeedback(accessFeedback,
-          result.ok ? 'Access granted: valid JWT.' : 'Access denied: authentication required.',
+          result.ok ? 'Access granted: Passport session is authenticated.' : 'Access denied: authentication required.',
           result.ok ? 'success' : 'error')
       }
       return result
@@ -91,7 +91,7 @@
     event.preventDefault()
     if (!form.reportValidity()) return
 
-    const username = usernameInput.value.trim()
+    const email = emailInput.value.trim()
     const password = passwordInput.value
     const endpoint = mode === 'register' ? '/auth/register' : '/auth/login'
     submitButton.disabled = true
@@ -101,7 +101,7 @@
     try {
       const result = await api(endpoint, {
         method: 'POST',
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
       if (!result.ok) {
         showFeedback(authFeedback, `HTTP ${result.status}: ${result.body?.error || 'Request failed'}`, 'error')
@@ -126,7 +126,7 @@
     try {
       const result = await api('/auth/logout', { method: 'POST' })
       if (!result.ok) throw new Error('Logout request failed')
-      showFeedback(authFeedback, 'Signed out. JWT cookie cleared.', 'success')
+      showFeedback(authFeedback, 'Signed out. The Passport session was destroyed.', 'success')
       await checkAccess(true)
       showFeedback(accessFeedback, 'HTTP 401 expected after logout.', 'success')
     } catch {
@@ -161,12 +161,31 @@
   }
 
   sessionButton.addEventListener('click', async () => {
+    sessionButton.disabled = true
     try {
       const response = await fetch('/session', { credentials: 'same-origin' })
       if (!response.ok) throw new Error('Session request failed')
       showFeedback(sessionFeedback, await response.text(), 'success')
     } catch {
       showFeedback(sessionFeedback, 'Could not read server session.', 'error')
+    } finally {
+      sessionButton.disabled = false
+    }
+  })
+
+  sessionResetButton.addEventListener('click', async () => {
+    sessionResetButton.disabled = true
+    try {
+      const response = await fetch('/session', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      })
+      if (!response.ok) throw new Error('Session reset failed')
+      showFeedback(sessionFeedback, 'Counter reset. Passport authentication is preserved.', 'success')
+    } catch {
+      showFeedback(sessionFeedback, 'Could not reset the session counter.', 'error')
+    } finally {
+      sessionResetButton.disabled = false
     }
   })
 
