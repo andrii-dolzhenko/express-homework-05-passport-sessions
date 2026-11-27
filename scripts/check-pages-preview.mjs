@@ -4,7 +4,7 @@ import { resolve, join, dirname, extname } from 'node:path'
 import { JSDOM } from 'jsdom'
 
 const ROOT = resolve('.pages-dist')
-const BASE = '/express-homework-04-jwt-cookies'
+const BASE = '/express-homework-05-passport-sessions'
 const ORIGIN = 'https://andrii-dolzhenko.github.io'
 const pages = []
 
