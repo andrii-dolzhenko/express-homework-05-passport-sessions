@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import session from 'express-session'
 
-// In-memory sessions for this coursework demo only. MemoryStore is not production-safe.
-export const SESSION_COOKIE_NAME = 'hw03.sid'
+// MemoryStore is suitable for this coursework demo only, not production.
+export const SESSION_COOKIE_NAME = 'hw05.sid'
 
 export const sessionMiddleware = session({
   name: SESSION_COOKIE_NAME,
@@ -12,7 +12,7 @@ export const sessionMiddleware = session({
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: false, // localhost uses HTTP; production must use HTTPS and secure cookies.
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 10 * 60 * 1000,
   },
 })
